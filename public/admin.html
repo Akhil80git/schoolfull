@@ -511,57 +511,76 @@
     }
 
     // ========================
-    // AUTH FLOW
+    // AUTH FLOW — FIXED
     // ========================
+
+    // Flag: redirect result already process hua to onAuthStateChanged skip karo
+    let redirectHandled = false;
+
     setLoginStatus("Checking login...");
 
-    // Step 1: onAuthStateChanged — handles both auto-login AND mobile redirect return
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            setLoginStatus("Logging in...");
-            try {
-                const idToken = await user.getIdToken();
-                await doBackendLogin(idToken, user.displayName);
-            } catch(e) {
-                setLoginStatus("Login error. Try again.", "red");
+    // STEP 1: Sabse pehle redirect result check karo (mobile wapas aaya ho to)
+    // Yeh SYNCHRONOUSLY onAuthStateChanged se pehle run hoga
+    (async () => {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                // Mobile redirect se wapas aaya — login karo
+                redirectHandled = true;
+                setLoginStatus("Logging in...", "gray");
+                const idToken = await result.user.getIdToken();
+                await doBackendLogin(idToken, result.user.displayName);
+                return;
             }
-        } else {
-            // Not signed in — check if this is a redirect return on mobile
-            try {
-                const result = await getRedirectResult(auth);
-                if (result && result.user) {
-                    setLoginStatus("Logging in...");
-                    const idToken = await result.user.getIdToken();
-                    await doBackendLogin(idToken, result.user.displayName);
-                } else {
-                    setLoginStatus("");
-                }
-            } catch(e) {
-                // getRedirectResult throws if no redirect happened — that's normal
-                setLoginStatus("");
-            }
+        } catch(e) {
+            // Koi redirect nahi tha — normal hai, ignore karo
+            console.log('No redirect result:', e.code);
         }
-    });
 
-    // Step 2: Button click
+        // STEP 2: Redirect nahi tha — check karo kya pehle se logged in hai
+        // (Already logged in user — page refresh pe auto login)
+        onAuthStateChanged(auth, async (user) => {
+            if (redirectHandled) return; // redirect already handle ho gaya
+            if (user) {
+                // Pehle se logged in hai (session active)
+                setLoginStatus("Logging in...", "gray");
+                try {
+                    const idToken = await user.getIdToken(true); // force refresh token
+                    await doBackendLogin(idToken, user.displayName);
+                } catch(e) {
+                    setLoginStatus("", "gray");
+                    document.getElementById('google-login-btn').disabled = false;
+                }
+            } else {
+                // Koi session nahi — login button dikhao
+                setLoginStatus("", "gray");
+                document.getElementById('google-login-btn').disabled = false;
+            }
+        });
+    })();
+
+    // STEP 3: Button click
     document.getElementById('google-login-btn').onclick = async () => {
         const btn = document.getElementById('google-login-btn');
         btn.disabled = true;
         try {
             if (isMobile()) {
-                // Mobile: redirect flow (popup blocked on mobile browsers)
-                setLoginStatus("Redirecting to Google...", "gray");
+                // Mobile: redirect flow — popup mobile browsers mein block hota hai
+                setLoginStatus("Google pe ja rahe hain...", "gray");
+                // Provider settings
+                provider.setCustomParameters({ prompt: 'select_account' });
                 await signInWithRedirect(auth, provider);
-                // Page will redirect — code below won't execute until user comes back
+                // Yahan tak code nahi aayega — page redirect ho jayega
             } else {
                 // PC/Desktop: popup flow
-                setLoginStatus("Opening Google login...", "gray");
+                setLoginStatus("Google login khul raha hai...", "gray");
                 const result  = await signInWithPopup(auth, provider);
                 const idToken = await result.user.getIdToken();
                 await doBackendLogin(idToken, result.user.displayName);
             }
         } catch(error) {
-            setLoginStatus("Login Failed! " + error.message, "red");
+            console.error('Login error:', error);
+            setLoginStatus("Login failed: " + (error.message || error.code), "red");
             btn.disabled = false;
         }
     };
