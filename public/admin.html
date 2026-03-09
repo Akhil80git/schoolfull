@@ -462,24 +462,31 @@
         onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // ── API URL ──
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:5000'
+        : window.location.origin;
+
+    // ── authDomain FIX ──
+    // firebaseapp.com authDomain se mobile pe redirect Google se wapas firebaseapp.com pe jaata tha
+    // Apna domain use karne se redirect APNE site pe wapas aata hai — session save rehta hai
+    const authDomain = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'schoolmassge.firebaseapp.com'
+        : window.location.hostname;   // schoolfull.onrender.com
+
     const firebaseConfig = {
         apiKey:            "AIzaSyBUGKahfiOnHkLM2tLSzxfi5Zzpr8AhcY4",
-        authDomain:        "schoolmassge.firebaseapp.com",
+        authDomain:        authDomain,
         projectId:         "schoolmassge",
         storageBucket:     "schoolmassge.firebasestorage.app",
         messagingSenderId: "29398821576",
         appId:             "1:29398821576:web:b03dd56eff1058fc7113fd"
     };
 
-    // ── API URL: same origin pe serve ho raha hai (express static) ──
-    // Production mein same domain, development mein localhost:5000
-    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5000'
-        : window.location.origin;
-
     const app      = initializeApp(firebaseConfig);
     const auth     = getAuth(app);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     const TOKEN    = () => localStorage.getItem('adminToken');
 
     // ── Mobile detect ──
@@ -567,8 +574,6 @@
             if (isMobile()) {
                 // Mobile: redirect flow — popup mobile browsers mein block hota hai
                 setLoginStatus("Google pe ja rahe hain...", "gray");
-                // Provider settings
-                provider.setCustomParameters({ prompt: 'select_account' });
                 await signInWithRedirect(auth, provider);
                 // Yahan tak code nahi aayega — page redirect ho jayega
             } else {
