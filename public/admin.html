@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - School Connect</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f0f2f5; min-height: 100vh; }
+
+        /* ===== LOGIN ===== */
+        #login-section { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-box {
+            background: white; padding: 40px; border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 400px; text-align: center;
+        }
+        .login-box h2 { color: #075e54; margin-bottom: 10px; }
+        .google-btn {
+            width: 100%; padding: 12px; background: #4285F4; color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+            font-size: 16px; margin-top: 20px; transition: 0.3s;
+        }
+        .google-btn:hover { background: #357abd; }
+        .google-btn:disabled { background: #a0c4f8; cursor: not-allowed; }
+
+        /* ===== DASHBOARD ===== */
+        #dashboard { display: none; }
+        .topbar {
+            background: #075e54; color: white; padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .topbar h1 { font-size: 20px; }
+        .topbar-right { display: flex; align-items: center; gap: 15px; }
+        .logout-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* ===== TABS ===== */
+        .tabs { background: white; border-bottom: 2px solid #eee; display: flex; padding: 0 25px; overflow-x: auto; }
+        .tab {
+            padding: 15px 20px; cursor: pointer; font-weight: bold;
+            color: #8696a0; border-bottom: 3px solid transparent;
+            transition: 0.2s; font-size: 14px; white-space: nowrap;
+        }
+        .tab.active { color: #075e54; border-bottom-color: #075e54; }
+
+        /* ===== TAB CONTENT ===== */
+        .tab-content { display: none; padding: 25px; }
+        .tab-content.active { display: block; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: white; border-radius: 12px;
+            padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            max-width: 520px;
+        }
+        .card h3 { color: #075e54; margin-bottom: 20px; }
+        .card input, .card select {
+            width: 100%; padding: 12px; margin: 8px 0;
+            border: 1px solid #ddd; border-radius: 8px; font-size: 15px;
+        }
+        .card button {
+            width: 100%; padding: 12px; background: #075e54; color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+            font-weight: bold; font-size: 15px; margin-top: 10px;
+        }
+        .card button:hover { background: #128c7e; }
+        .qr-box {
+            margin-top: 20px; padding: 20px;
+            border: 2px dashed #075e54; border-radius: 10px; text-align: center;
+        }
+
+        /* ===== CHAT MONITOR ===== */
+        #chat-monitor { display: flex; height: calc(100vh - 122px); gap: 0; }
+        #monitor-sidebar {
+            width: 280px; background: white; border-right: 1px solid #eee;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .sidebar-header { padding: 15px; background: #ededed; font-weight: bold; color: #075e54; border-bottom: 1px solid #ddd; }
+        .class-section { border-bottom: 1px solid #f0f0f0; }
+        .class-header {
+            padding: 10px 15px; background: #f8f8f8;
+            font-weight: bold; font-size: 13px; color: #555;
+            cursor: pointer; display: flex; justify-content: space-between;
+        }
+        .class-header:hover { background: #f0f0f0; }
+        .group-item {
+            padding: 10px 20px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 14px; color: #128c7e; border-bottom: 1px solid #f5f5f5;
+        }
+        .group-item:hover { background: #f5f5f5; }
+        .group-item.active { background: #e8f5e9; }
+        #private-selector {
+            padding: 10px 15px; border-bottom: 1px solid #eee; background: #fffde7;
+        }
+        #private-selector p { font-size: 12px; color: #888; margin-bottom: 8px; }
+        #private-selector select {
+            width: 100%; padding: 6px; border: 1px solid #ddd;
+            border-radius: 6px; font-size: 13px; margin-bottom: 6px;
+        }
+        #view-private-btn {
+            width: 100%; padding: 7px; background: #075e54; color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-size: 13px;
+        }
+        #monitor-sidebar-scroll { flex: 1; overflow-y: auto; }
+        #monitor-chat { flex: 1; display: flex; flex-direction: column; background: #efeae2; }
+        #monitor-chat-header {
+            background: #ededed; padding: 12px 20px;
+            border-bottom: 1px solid #ddd; min-height: 60px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        #monitor-chat-header .chat-title { font-weight: bold; font-size: 16px; }
+        #monitor-chat-header .chat-sub { font-size: 12px; color: #666; }
+        #monitor-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+        .msg { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; max-width: 65%; font-size: 14px; word-wrap: break-word; }
+        .msg-sent { background: #dcf8c6; align-self: flex-end; }
+        .msg-received { background: white; align-self: flex-start; }
+        .msg-admin { background: #e3f2fd; align-self: flex-end; }
+        .msg-time { font-size: 11px; color: #8696a0; float: right; margin-left: 10px; }
+        .msg-sender { font-size: 11px; color: #075e54; font-weight: bold; margin-bottom: 3px; }
+        #admin-send-bar {
+            display: none; background: #f0f2f5; padding: 10px 15px;
+            align-items: center; gap: 10px;
+        }
+        #admin-msg-input {
+            flex: 1; padding: 10px 15px; border: none;
+            border-radius: 25px; outline: none; font-size: 15px;
+        }
+        #admin-send-btn {
+            border: none; background: #075e54; color: white;
+            border-radius: 50%; width: 42px; height: 42px; cursor: pointer; font-size: 18px;
+        }
+        #admin-send-btn:hover { background: #128c7e; }
+
+        /* ===== ANALYTICS ===== */
+        #tab-analytics { padding: 20px; overflow-y: auto; height: calc(100vh - 122px); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .stat-card .stat-num { font-size: 32px; font-weight: bold; color: #075e54; }
+        .stat-card .stat-label { font-size: 13px; color: #888; margin-top: 5px; }
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .analytics-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        .analytics-card h3 { color: #075e54; margin-bottom: 15px; font-size: 15px; }
+        .rank-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+        .rank-num { font-weight: bold; color: #888; width: 20px; }
+        .rank-bar-wrap { flex: 1; background: #f0f0f0; border-radius: 4px; height: 8px; }
+        .rank-bar { height: 8px; border-radius: 4px; background: #25D366; transition: width 0.5s; }
+        .rank-count { font-weight: bold; color: #075e54; font-size: 13px; min-width: 30px; text-align: right; }
+        .leaderboard-section { margin-bottom: 20px; }
+        .leaderboard-section h4 { color: #128c7e; margin-bottom: 10px; font-size: 14px; padding: 8px 12px; background: #e8f5e9; border-radius: 8px; }
+        .lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: white; border-radius: 8px; margin-bottom: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .lb-rank { font-size: 18px; width: 30px; text-align: center; }
+        .lb-name { flex: 1; font-weight: bold; font-size: 14px; }
+        .lb-stats { font-size: 12px; color: #888; }
+        .lb-grade { padding: 4px 10px; border-radius: 12px; color: white; font-weight: bold; font-size: 13px; min-width: 36px; text-align: center; }
+        .online-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .refresh-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .refresh-btn { padding: 8px 18px; background: #075e54; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #25D366; }
+        .live-dot { width: 8px; height: 8px; background: #25D366; border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .last-updated { font-size: 12px; color: #888; }
+
+        /* ===== QR SECURITY TAB ===== */
+        #tab-qrsecurity { padding: 20px; overflow-y: auto; height: calc(100vh - 122px); }
+
+        .qr-stats-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+        }
+        .qr-stats-header h2 { color: #075e54; font-size: 20px; }
+
+        .qr-chips { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+        .qr-chip {
+            padding: 10px 20px; border-radius: 20px; font-weight: bold;
+            font-size: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .chip-used    { background: #e8f5e9; color: #2e7d32; }
+        .chip-unused  { background: #fff3e0; color: #e65100; }
+        .chip-online  { background: #e3f2fd; color: #1565c0; }
+        .chip-force   { background: #fce4ec; color: #b71c1c; }
+
+        .qr-filter-bar {
+            display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+        }
+        .qr-filter-bar input, .qr-filter-bar select {
+            padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 13px; outline: none;
+        }
+        .qr-filter-bar input { flex: 1; min-width: 160px; }
+        .qr-filter-bar select { min-width: 130px; }
+
+        .qr-table-wrap {
+            background: white; border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden;
+        }
+        .qr-table {
+            width: 100%; border-collapse: collapse; font-size: 13px;
+        }
+        .qr-table thead tr { background: #f5f5f5; }
+        .qr-table th {
+            padding: 12px 14px; text-align: left; color: #555;
+            font-weight: 600; white-space: nowrap;
+        }
+        .qr-table td { padding: 11px 14px; border-bottom: 1px solid #f2f2f2; vertical-align: middle; }
+        .qr-table tr:hover td { background: #fafafa; }
+        .qr-table tr:last-child td { border-bottom: none; }
+
+        .badge {
+            padding: 3px 10px; border-radius: 10px; font-size: 12px;
+            font-weight: bold; white-space: nowrap; display: inline-block;
+        }
+        .badge-used     { background: #e8f5e9; color: #2e7d32; }
+        .badge-unused   { background: #fff3e0; color: #e65100; }
+        .badge-force    { background: #fce4ec; color: #b71c1c; }
+        .badge-online   { background: #e3f2fd; color: #1565c0; }
+        .badge-offline  { background: #f5f5f5; color: #888; }
+
+        .device-info {
+            font-size: 11px; color: #888; margin-top: 3px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            max-width: 180px;
+        }
+
+        .btn-refresh-qr {
+            padding: 5px 12px; background: #075e54; color: white;
+            border: none; border-radius: 6px; cursor: pointer; font-size: 12px;
+            white-space: nowrap; transition: 0.2s;
+        }
+        .btn-refresh-qr:hover { background: #128c7e; }
+        .btn-refresh-qr:disabled { background: #ccc; cursor: not-allowed; }
+
+        .qr-modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .qr-modal-overlay.open { display: flex; }
+        .qr-modal {
+            background: white; border-radius: 16px; padding: 30px;
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 340px; width: 90%;
+        }
+        .qr-modal h3 { color: #075e54; margin-bottom: 6px; }
+        .qr-modal p  { color: #666; font-size: 13px; margin-bottom: 16px; }
+        .qr-modal img { width: 200px; height: 200px; margin: 10px auto; display: block; border: 1px solid #eee; border-radius: 8px; }
+        .qr-modal-close {
+            margin-top: 16px; padding: 10px 24px; background: #075e54;
+            color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px;
+        }
+        .qr-modal-dl {
+            margin-top: 8px; padding: 8px 20px; background: #e8f5e9;
+            color: #2e7d32; border: none; border-radius: 8px;
+            cursor: pointer; font-size: 13px; font-weight: bold; text-decoration: none;
+            display: inline-block;
+        }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #aaa; font-size: 15px; }
+        .empty-state span { font-size: 48px; display: block; margin-bottom: 12px; }
+
+        .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 3px solid #ddd; border-top-color: #075e54;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-section">
+    <div class="login-box">
+        <h2>🏫 Admin Portal</h2>
+        <p style="color:gray; margin-top:5px;">School Connect Management</p>
+        <button class="google-btn" id="google-login-btn">🔑 Sign in with Google</button>
+        <p id="login-status" style="color:gray; font-size:13px; margin-top:10px;"></p>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard">
+    <div class="topbar">
+        <h1>🏫 School Connect — Admin</h1>
+        <div class="topbar-right">
+            <span id="admin-school" style="font-size:14px; opacity:0.8;"></span>
+            <span id="admin-name-top" style="font-weight:bold;"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active"  onclick="switchTab('register',  this)">📋 Register Student</div>
+        <div class="tab"         onclick="switchTab('monitor',   this)">💬 Chat Monitor</div>
+        <div class="tab"         onclick="switchTab('analytics', this)">📊 Analytics</div>
+        <div class="tab"         onclick="switchTab('qrsecurity',this)">🔐 QR Security</div>
+    </div>
+
+    <!-- ── REGISTER TAB ── -->
+    <div class="tab-content active" id="tab-register">
+        <div class="card">
+            <h3>➕ Register New Student</h3>
+            <div id="school-setup">
+                <input type="text" id="school-input" placeholder="Enter School Name">
+                <button onclick="lockSchool()">Set School &amp; Continue</button>
+            </div>
+            <div id="reg-form" style="display:none;">
+                <p style="margin: 10px 0; color:#555;">School: <b id="locked-school" style="color:#075e54;"></b></p>
+                <input type="text" id="stu-name" placeholder="Student Full Name">
+                <select id="stu-class">
+                    <option value="Class 4">Class 4</option>
+                    <option value="Class 5">Class 5</option>
+                    <option value="Class 6">Class 6</option>
+                </select>
+                <button onclick="registerStudent()">Register &amp; Generate QR</button>
+                <div id="qr-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CHAT MONITOR TAB ── -->
+    <div class="tab-content" id="tab-monitor">
+        <div id="chat-monitor">
+            <div id="monitor-sidebar">
+                <div class="sidebar-header">📡 Chat Monitor</div>
+                <div id="private-selector">
+                    <p>🔒 Private Chat Dekho:</p>
+                    <select id="ps-student1"><option value="">-- Student 1 --</option></select>
+                    <select id="ps-student2"><option value="">-- Student 2 --</option></select>
+                    <button id="view-private-btn" onclick="viewPrivateChat()">Dekho</button>
+                </div>
+                <div id="monitor-sidebar-scroll"></div>
+            </div>
+
+            <div id="monitor-chat">
+                <div id="monitor-chat-header">
+                    <div id="no-monitor-msg" style="display:flex; align-items:center; gap:10px; color:#8696a0;">
+                        <span style="font-size:30px;">👁️</span>
+                        <span>Koi chat select karo monitor karne ke liye</span>
+                    </div>
+                    <div id="active-monitor-info" style="display:none;">
+                        <span style="font-size:28px;" id="monitor-icon">💬</span>
+                        <div>
+                            <div class="chat-title" id="monitor-title"></div>
+                            <div class="chat-sub"   id="monitor-sub"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="monitor-messages">
+                    <div id="no-msg-placeholder" style="flex:1; display:flex; align-items:center; justify-content:center; color:#8696a0; flex-direction:column; gap:10px;">
+                        <span style="font-size:40px;">💬</span><span>Koi chat select karo</span>
+                    </div>
+                </div>
+                <div id="admin-send-bar" style="display:none;">
+                    <input type="text" id="admin-msg-input" placeholder="Group mein message bhejo as Admin..."
+                           onkeydown="if(event.key==='Enter') adminSendMsg()">
+                    <button id="admin-send-btn" onclick="adminSendMsg()">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ANALYTICS TAB ── -->
+    <div class="tab-content" id="tab-analytics">
+        <div class="refresh-bar">
+            <button class="refresh-btn" onclick="loadAnalytics()">🔄 Refresh</button>
+            <div class="live-indicator"><div class="live-dot"></div> Live</div>
+            <span class="last-updated" id="last-updated-time"></span>
+        </div>
+        <div class="stats-grid"    id="total-stats-grid"></div>
+        <div class="analytics-grid">
+            <div class="analytics-card"><h3>🔒 Top Private Chat Pairs</h3><div id="top-pairs-list"></div></div>
+            <div class="analytics-card"><h3>👥 Top Group Senders</h3><div id="top-group-list"></div></div>
+        </div>
+        <div class="analytics-card" style="margin-bottom:20px;">
+            <h3>🏆 Class Leaderboard — Message Grade</h3>
+            <div id="class-leaderboard"></div>
+        </div>
+        <div class="analytics-card">
+            <h3>📋 All Students Activity</h3>
+            <div id="all-students-activity"></div>
+        </div>
+    </div>
+
+    <!-- ── QR SECURITY TAB ── -->
+    <div class="tab-content" id="tab-qrsecurity">
+        <div class="qr-stats-header">
+            <h2>🔐 QR Security Dashboard</h2>
+            <button class="refresh-btn" onclick="loadQRStats()" id="qr-refresh-btn">🔄 Refresh</button>
+            <div class="live-indicator"><div class="live-dot"></div> Live</div>
+        </div>
+
+        <div class="qr-chips" id="qr-chips"></div>
+
+        <div class="qr-filter-bar">
+            <input type="text"   id="qr-search"        placeholder="🔍 Search by name / class...">
+            <select id="qr-filter-status">
+                <option value="all">All Status</option>
+                <option value="used">QR Used</option>
+                <option value="unused">QR Not Used</option>
+                <option value="force">Force Logout</option>
+            </select>
+            <select id="qr-filter-class">
+                <option value="all">All Classes</option>
+            </select>
+            <select id="qr-filter-online">
+                <option value="all">All Students</option>
+                <option value="online">Online Only</option>
+                <option value="offline">Offline Only</option>
+            </select>
+        </div>
+
+        <div class="qr-table-wrap">
+            <table class="qr-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Online</th>
+                        <th>QR Status</th>
+                        <th>QR Used At</th>
+                        <th>Device Info</th>
+                        <th>Last Seen</th>
+                        <th>QR Refreshed</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="qr-table-body">
+                    <tr><td colspan="10" class="empty-state"><span>⏳</span>Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── QR Modal ── -->
+<div class="qr-modal-overlay" id="qr-modal">
+    <div class="qr-modal">
+        <h3 id="qr-modal-title">New QR Code</h3>
+        <p  id="qr-modal-sub">Student ka naya QR generate ho gaya</p>
+        <img id="qr-modal-img" src="" alt="QR Code">
+        <br>
+        <a  id="qr-modal-dl" class="qr-modal-dl" download="QR.png">⬇️ Download QR</a>
+        <br>
+        <button class="qr-modal-close" onclick="closeQRModal()">✅ Done</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp }           from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+        getAuth,
+        signInWithPopup,
+        signInWithRedirect,
+        getRedirectResult,
+        signOut,
+        GoogleAuthProvider,
+        onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey:            "AIzaSyBUGKahfiOnHkLM2tLSzxfi5Zzpr8AhcY4",
+        authDomain:        "schoolmassge.firebaseapp.com",
+        projectId:         "schoolmassge",
+        storageBucket:     "schoolmassge.firebasestorage.app",
+        messagingSenderId: "29398821576",
+        appId:             "1:29398821576:web:b03dd56eff1058fc7113fd"
+    };
+
+    // ── API URL: same origin pe serve ho raha hai (express static) ──
+    // Production mein same domain, development mein localhost:5000
+    const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000'
+        : window.location.origin;
+
+    const app      = initializeApp(firebaseConfig);
+    const auth     = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const TOKEN    = () => localStorage.getItem('adminToken');
+
+    // ── Mobile detect ──
+    function isMobile() {
+        return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    }
+
+    // QRious library for QR generation
+    const QR_LIB = "https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js";
+    let qrLibLoaded = false;
+    async function loadQRLib() {
+        if (qrLibLoaded) return;
+        return new Promise(res => {
+            const s = document.createElement('script'); s.src = QR_LIB;
+            s.onload = () => { qrLibLoaded = true; res(); };
+            document.head.appendChild(s);
+        });
+    }
+
+    function makeQRDataURL(text) {
+        const canvas = document.createElement('canvas');
+        new window.QRious({ element: canvas, value: text, size: 300, background: 'white', foreground: '#075e54' });
+        return canvas.toDataURL('image/png');
+    }
+
+    function setLoginStatus(msg, color) {
+        const el = document.getElementById('login-status');
+        if (el) { el.innerText = msg; el.style.color = color || 'gray'; }
+    }
+
+    // ========================
+    // AUTH FLOW
+    // ========================
+    setLoginStatus("Checking login...");
+
+    // Step 1: onAuthStateChanged — handles both auto-login AND mobile redirect return
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            setLoginStatus("Logging in...");
+            try {
+                const idToken = await user.getIdToken();
+                await doBackendLogin(idToken, user.displayName);
+            } catch(e) {
+                setLoginStatus("Login error. Try again.", "red");
+            }
+        } else {
+            // Not signed in — check if this is a redirect return on mobile
+            try {
+                const result = await getRedirectResult(auth);
+                if (result && result.user) {
+                    setLoginStatus("Logging in...");
+                    const idToken = await result.user.getIdToken();
+                    await doBackendLogin(idToken, result.user.displayName);
+                } else {
+                    setLoginStatus("");
+                }
+            } catch(e) {
+                // getRedirectResult throws if no redirect happened — that's normal
+                setLoginStatus("");
+            }
+        }
+    });
+
+    // Step 2: Button click
+    document.getElementById('google-login-btn').onclick = async () => {
+        const btn = document.getElementById('google-login-btn');
+        btn.disabled = true;
+        try {
+            if (isMobile()) {
+                // Mobile: redirect flow (popup blocked on mobile browsers)
+                setLoginStatus("Redirecting to Google...", "gray");
+                await signInWithRedirect(auth, provider);
+                // Page will redirect — code below won't execute until user comes back
+            } else {
+                // PC/Desktop: popup flow
+                setLoginStatus("Opening Google login...", "gray");
+                const result  = await signInWithPopup(auth, provider);
+                const idToken = await result.user.getIdToken();
+                await doBackendLogin(idToken, result.user.displayName);
+            }
+        } catch(error) {
+            setLoginStatus("Login Failed! " + error.message, "red");
+            btn.disabled = false;
+        }
+    };
+
+    async function doBackendLogin(idToken, displayName) {
+        try {
+            const response = await fetch(`${API_URL}/api/auth/admin/google`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken })
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem('adminToken',  data.token);
+                localStorage.setItem('adminName',   displayName || '');
+                localStorage.setItem('adminSchool', data.admin?.schoolName || '');
+                showDashboard(displayName, data.admin?.schoolName);
+            } else {
+                setLoginStatus("Backend login failed: " + (data.message || 'Unknown error'), "red");
+                document.getElementById('google-login-btn').disabled = false;
+            }
+        } catch(err) {
+            setLoginStatus("Server error: " + err.message, "red");
+            document.getElementById('google-login-btn').disabled = false;
+        }
+    }
+
+    window.logout = async () => {
+        await signOut(auth);
+        ['adminToken','adminName','adminSchool'].forEach(k => localStorage.removeItem(k));
+        document.getElementById('dashboard').style.display    = 'none';
+        document.getElementById('login-section').style.display = 'flex';
+        document.getElementById('google-login-btn').disabled = false;
+        setLoginStatus("");
+    };
+
+    function showDashboard(name, school) {
+        document.getElementById('login-section').style.display  = 'none';
+        document.getElementById('dashboard').style.display      = 'block';
+        document.getElementById('admin-name-top').innerText     = name   || '';
+        document.getElementById('admin-school').innerText       = (school && school !== 'Pending') ? `🏫 ${school}` : '';
+        if (school && school !== 'Pending') {
+            document.getElementById('school-setup').style.display  = 'none';
+            document.getElementById('locked-school').innerText     = school;
+            document.getElementById('reg-form').style.display      = 'block';
+        }
+    }
+
+    // ========================
+    // TABS
+    // ========================
+    let analyticsInterval = null;
+
+    window.switchTab = (tab, el) => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById(`tab-${tab}`).classList.add('active');
+
+        if (tab === 'monitor')     { loadMonitor(); }
+        if (tab === 'analytics')   {
+            loadAnalytics();
+            if (analyticsInterval) clearInterval(analyticsInterval);
+            analyticsInterval = setInterval(loadAnalytics, 10000);
+        } else {
+            if (analyticsInterval) { clearInterval(analyticsInterval); analyticsInterval = null; }
+        }
+        if (tab === 'qrsecurity')  { loadQRStats(); }
+    };
+
+    // ========================
+    // SCHOOL LOCK
+    // ========================
+    window.lockSchool = () => {
+        const name = document.getElementById('school-input').value.trim();
+        if (!name) return alert("School name dalo");
+        document.getElementById('locked-school').innerText    = name;
+        document.getElementById('school-setup').style.display = 'none';
+        document.getElementById('reg-form').style.display     = 'block';
+        localStorage.setItem('adminSchool', name);
+    };
+
+    // ========================
+    // REGISTER STUDENT
+    // ========================
+    window.registerStudent = async () => {
+        const payload = {
+            username:   document.getElementById('stu-name').value,
+            className:  document.getElementById('stu-class').value,
+            schoolName: document.getElementById('locked-school').innerText
+        };
+        if (!payload.username) return alert("Student name dalo");
+
+        const res    = await fetch(`${API_URL}/api/auth/admin/create-student`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN()}` },
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+            await loadQRLib();
+            const qrDataURL = makeQRDataURL(result.qrData);
+            document.getElementById('qr-result').innerHTML = `
+                <div class="qr-box">
+                    <p style="font-weight:bold; color:#075e54;">✅ ${payload.username} registered!</p>
+                    <p style="color:gray; font-size:13px;">ID: ${result.student.studentId}</p>
+                    <img src="${qrDataURL}" width="180" style="margin:10px 0; border-radius:8px;"><br>
+                    <a href="${qrDataURL}" download="${payload.username}_QR.png"
+                       style="background:#075e54; color:white; padding:8px 16px; border-radius:6px; text-decoration:none; display:inline-block; margin-top:6px;">
+                       ⬇️ Download QR
+                    </a>
+                </div>`;
+            document.getElementById('stu-name').value = '';
+        } else {
+            alert(result.message);
+        }
+    };
+
+    // ========================
+    // CHAT MONITOR
+    // ========================
+    let allStudents = [];
+    let currentMonitorType = null;
+    let currentMonitorData = null;
+
+    async function loadMonitor() {
+        const res    = await fetch(`${API_URL}/api/chat/admin/students`, {
+            headers: { 'Authorization': `Bearer ${TOKEN()}` }
+        });
+        const result = await res.json();
+        if (!result.success) return;
+        allStudents = result.students;
+        renderMonitorSidebar(result.classes);
+        populatePrivateSelects(result.students);
+    }
+
+    function populatePrivateSelects(students) {
+        const s1 = document.getElementById('ps-student1');
+        const s2 = document.getElementById('ps-student2');
+        s1.innerHTML = '<option value="">-- Student 1 --</option>';
+        s2.innerHTML = '<option value="">-- Student 2 --</option>';
+        students.forEach(s => {
+            s1.innerHTML += `<option value="${s.studentId}">${s.username} (${s.className})</option>`;
+            s2.innerHTML += `<option value="${s.studentId}">${s.username} (${s.className})</option>`;
+        });
+    }
+
+    function renderMonitorSidebar(classes) {
+        const div = document.getElementById('monitor-sidebar-scroll');
+        div.innerHTML = '';
+        Object.keys(classes).sort().forEach(cls => {
+            const students = classes[cls];
+            const section  = document.createElement('div');
+            section.className = 'class-section';
+            section.innerHTML = `
+                <div class="class-header">
+                    <span>📚 ${cls}</span><span>${students.length} students</span>
+                </div>
+                <div class="group-item" id="grp-${cls}" onclick="viewGroupChat('${cls}')">
+                    👥 Group Chat
+                </div>`;
+            div.appendChild(section);
+        });
+    }
+
+    window.viewPrivateChat = async () => {
+        const s1 = document.getElementById('ps-student1').value;
+        const s2 = document.getElementById('ps-student2').value;
+        if (!s1 || !s2 || s1 === s2) return alert("2 alag students select karo");
+        const n1 = allStudents.find(s => s.studentId === s1)?.username || s1;
+        const n2 = allStudents.find(s => s.studentId === s2)?.username || s2;
+        currentMonitorType = 'private'; currentMonitorData = { s1, s2, n1, n2 };
+        document.getElementById('no-monitor-msg').style.display    = 'none';
+        document.getElementById('active-monitor-info').style.display = 'flex';
+        document.getElementById('monitor-icon').innerText  = '🔒';
+        document.getElementById('monitor-title').innerText = `${n1} ↔ ${n2}`;
+        document.getElementById('monitor-sub').innerText   = 'Private Chat (Read Only)';
+        document.getElementById('admin-send-bar').style.display = 'none';
+        const res    = await fetch(`${API_URL}/api/chat/admin/private/${s1}/${s2}`, {
+            headers: { 'Authorization': `Bearer ${TOKEN()}` }
+        });
+        const result = await res.json();
+        renderMonitorMessages(result.messages || [], s1, null);
+    };
+
+    window.viewGroupChat = async (className) => {
+        currentMonitorType = 'group'; currentMonitorData = { className };
+        document.querySelectorAll('.group-item').forEach(el => el.classList.remove('active'));
+        const el = document.getElementById(`grp-${className}`);
+        if (el) el.classList.add('active');
+        document.getElementById('no-monitor-msg').style.display      = 'none';
+        document.getElementById('active-monitor-info').style.display = 'flex';
+        document.getElementById('monitor-icon').innerText  = '👥';
+        document.getElementById('monitor-title').innerText = `${className} — Group Chat`;
+        document.getElementById('monitor-sub').innerText   = 'Admin yahan message bhej sakta hai';
+        document.getElementById('admin-send-bar').style.display = 'flex';
+        const res    = await fetch(`${API_URL}/api/chat/admin/group/${encodeURIComponent(className)}`, {
+            headers: { 'Authorization': `Bearer ${TOKEN()}` }
+        });
+        const result = await res.json();
+        renderMonitorMessages(result.messages || [], null, className);
+    };
+
+    function renderMonitorMessages(messages, privateSenderId, groupClass) {
+        const div = document.getElementById('monitor-messages');
+        div.innerHTML = '';
+        if (messages.length === 0) {
+            div.innerHTML = '<div style="text-align:center; color:#8696a0; margin-top:50px;">Koi message nahi abhi tak</div>';
+            return;
+        }
+        messages.forEach(m => {
+            const isAdmin = m.senderStudentId?.startsWith('ADMIN-');
+            const isFirst = privateSenderId ? m.senderStudentId === privateSenderId : false;
+            const msgDiv  = document.createElement('div');
+            msgDiv.className = `msg ${isAdmin ? 'msg-admin' : isFirst ? 'msg-sent' : 'msg-received'}`;
+            const t = new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            msgDiv.innerHTML = `<div class="msg-sender">${m.senderName}</div>${m.text}<span class="msg-time">${t}</span>`;
+            div.appendChild(msgDiv);
+        });
+        div.scrollTop = 99999;
+    }
+
+    window.adminSendMsg = async () => {
+        const input = document.getElementById('admin-msg-input');
+        const text  = input.value.trim();
+        if (!text || !currentMonitorData?.className) return;
+        input.value = '';
+        const res = await fetch(`${API_URL}/api/chat/admin/group/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN()}` },
+            body: JSON.stringify({ className: currentMonitorData.className, text })
+        });
+        const result = await res.json();
+        if (result.success) viewGroupChat(currentMonitorData.className);
+    };
+
+    // ========================
+    // ANALYTICS
+    // ========================
+    async function loadAnalytics() {
+        try {
+            const res  = await fetch(`${API_URL}/api/chat/admin/analytics`, {
+                headers: { 'Authorization': `Bearer ${TOKEN()}` }
+            });
+            const data = await res.json();
+            if (!data.success) return;
+            renderTotalStats(data.totalStats);
+            renderTopPairs(data.topPairs);
+            renderTopGroupSenders(data.topGroupSenders);
+            renderClassLeaderboard(data.classLeaderboard);
+            renderAllStudents(data.studentActivity);
+            document.getElementById('last-updated-time').innerText = `Last updated: ${new Date().toLocaleTimeString()}`;
+        } catch(err) { console.error('Analytics error:', err); }
+    }
+    window.loadAnalytics = loadAnalytics;
+
+    function renderTotalStats(stats) {
+        document.getElementById('total-stats-grid').innerHTML = `
+            <div class="stat-card"><div class="stat-num">${stats.totalStudents}</div><div class="stat-label">👨‍🎓 Total Students</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:#25D366">${stats.onlineNow}</div><div class="stat-label">🟢 Online Now</div></div>
+            <div class="stat-card"><div class="stat-num">${stats.totalMessages}</div><div class="stat-label">💬 Total Messages</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:#4285F4">${stats.totalPrivate}</div><div class="stat-label">🔒 Private Msgs</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:#128c7e">${stats.totalGroup}</div><div class="stat-label">👥 Group Msgs</div></div>
+        `;
+    }
+
+    function renderTopPairs(pairs) {
+        const div = document.getElementById('top-pairs-list');
+        if (!pairs.length) { div.innerHTML = '<p style="color:#888;font-size:13px;">Abhi koi private chat nahi</p>'; return; }
+        const max = pairs[0].count;
+        div.innerHTML = pairs.map((p, i) => `
+            <div class="rank-item">
+                <span class="rank-num">${i+1}</span>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:bold;">${p.student1} ↔ ${p.student2}</div>
+                    <div class="rank-bar-wrap" style="margin-top:4px;">
+                        <div class="rank-bar" style="width:${Math.round((p.count/max)*100)}%;background:#4285F4;"></div>
+                    </div>
+                </div>
+                <span class="rank-count">${p.count}</span>
+            </div>`).join('');
+    }
+
+    function renderTopGroupSenders(senders) {
+        const div = document.getElementById('top-group-list');
+        if (!senders.length) { div.innerHTML = '<p style="color:#888;font-size:13px;">Abhi koi group message nahi</p>'; return; }
+        const max = senders[0].count;
+        div.innerHTML = senders.map((s, i) => `
+            <div class="rank-item">
+                <span class="rank-num">${i+1}</span>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:bold;">${s.student} <span style="color:#888;font-weight:normal;">(${s.className})</span></div>
+                    <div class="rank-bar-wrap" style="margin-top:4px;">
+                        <div class="rank-bar" style="width:${Math.round((s.count/max)*100)}%;"></div>
+                    </div>
+                </div>
+                <span class="rank-count">${s.count}</span>
+            </div>`).join('');
+    }
+
+    function renderClassLeaderboard(classes) {
+        const div = document.getElementById('class-leaderboard');
+        div.innerHTML = '';
+        const medals = ['🥇','🥈','🥉'];
+        Object.keys(classes).sort().forEach(cls => {
+            const students = classes[cls];
+            const section  = document.createElement('div');
+            section.className = 'leaderboard-section';
+            section.innerHTML = `<h4>📚 ${cls}</h4>` +
+                students.map((s, i) => `
+                    <div class="lb-row">
+                        <span class="lb-rank">${medals[i] || '#'+s.rank}</span>
+                        <div class="online-dot" style="background:${s.isOnline ? '#25D366' : '#8696a0'}"></div>
+                        <div class="lb-name">${s.username}</div>
+                        <div class="lb-stats">📤 ${s.sent} sent &nbsp; 📥 ${s.received} recv</div>
+                        <div class="lb-grade" style="background:${s.grade.color}">${s.grade.label}</div>
+                    </div>`).join('');
+            div.appendChild(section);
+        });
+    }
+
+    function renderAllStudents(students) {
+        const div = document.getElementById('all-students-activity');
+        if (!students.length) { div.innerHTML = '<p style="color:#888;">Koi student nahi</p>'; return; }
+        const max = students[0]?.total || 1;
+        div.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead><tr style="background:#f5f5f5;color:#555;">
+                    <th style="padding:10px;text-align:left;">Student</th>
+                    <th style="padding:10px;">Class</th>
+                    <th style="padding:10px;">Status</th>
+                    <th style="padding:10px;">Sent</th>
+                    <th style="padding:10px;">Received</th>
+                    <th style="padding:10px;">Total</th>
+                    <th style="padding:10px;">Activity</th>
+                </tr></thead>
+                <tbody>${students.map(s => `
+                    <tr style="border-bottom:1px solid #f0f0f0;">
+                        <td style="padding:10px;font-weight:bold;">${s.username}</td>
+                        <td style="padding:10px;text-align:center;color:#666;">${s.className}</td>
+                        <td style="padding:10px;text-align:center;">
+                            <span style="color:${s.isOnline ? '#25D366' : '#8696a0'};font-size:12px;">
+                                ${s.isOnline ? '🟢 Online' : '⚫ Offline'}
+                            </span>
+                        </td>
+                        <td style="padding:10px;text-align:center;color:#4285F4;">${s.sent}</td>
+                        <td style="padding:10px;text-align:center;color:#128c7e;">${s.received}</td>
+                        <td style="padding:10px;text-align:center;font-weight:bold;">${s.total}</td>
+                        <td style="padding:10px;min-width:100px;">
+                            <div class="rank-bar-wrap">
+                                <div class="rank-bar" style="width:${max > 0 ? Math.round((s.total/max)*100) : 0}%;"></div>
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
+    }
+
+    // ========================
+    // QR SECURITY
+    // ========================
+    let qrStatsData = [];
+
+    async function loadQRStats() {
+        const btn = document.getElementById('qr-refresh-btn');
+        btn.innerHTML = '<span class="spinner"></span> Loading...';
+        btn.disabled  = true;
+        try {
+            const res    = await fetch(`${API_URL}/api/auth/admin/qr-stats`, {
+                headers: { 'Authorization': `Bearer ${TOKEN()}` }
+            });
+            const result = await res.json();
+            if (!result.success) { btn.innerHTML = '🔄 Refresh'; btn.disabled = false; return; }
+            qrStatsData = result.stats;
+            renderQRStats(qrStatsData);
+        } catch(e) { console.error(e); }
+        btn.innerHTML = '🔄 Refresh';
+        btn.disabled  = false;
+    }
+    window.loadQRStats = loadQRStats;
+
+    function renderQRStats(data) {
+        const used    = data.filter(s => s.qrStatus === 'Used').length;
+        const unused  = data.filter(s => s.qrStatus !== 'Used').length;
+        const online  = data.filter(s => s.isOnline).length;
+        const force   = data.filter(s => s.forceLogout).length;
+
+        document.getElementById('qr-chips').innerHTML = `
+            <div class="qr-chip chip-used">   ✅ QR Used: ${used}</div>
+            <div class="qr-chip chip-unused">  ⏳ Not Used: ${unused}</div>
+            <div class="qr-chip chip-online">  🟢 Online: ${online}</div>
+            <div class="qr-chip chip-force">   ⚠️ Force Logout: ${force}</div>
+        `;
+
+        const classSelect = document.getElementById('qr-filter-class');
+        const classes     = [...new Set(data.map(s => s.className))].sort();
+        classSelect.innerHTML = '<option value="all">All Classes</option>' +
+            classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        applyQRFilters();
+    }
+
+    function applyQRFilters() {
+        const search  = document.getElementById('qr-search').value.toLowerCase();
+        const status  = document.getElementById('qr-filter-status').value;
+        const cls     = document.getElementById('qr-filter-class').value;
+        const online  = document.getElementById('qr-filter-online').value;
+
+        let filtered = qrStatsData.filter(s => {
+            if (search && !s.username.toLowerCase().includes(search) && !s.className.toLowerCase().includes(search)) return false;
+            if (status === 'used'   && s.qrStatus !== 'Used')  return false;
+            if (status === 'unused' && s.qrStatus === 'Used')  return false;
+            if (status === 'force'  && !s.forceLogout)         return false;
+            if (cls !== 'all'       && s.className !== cls)    return false;
+            if (online === 'online'  && !s.isOnline)           return false;
+            if (online === 'offline' && s.isOnline)            return false;
+            return true;
+        });
+
+        renderQRTable(filtered);
+    }
+
+    ['qr-search','qr-filter-status','qr-filter-class','qr-filter-online'].forEach(id => {
+        document.getElementById(id).addEventListener('input',  applyQRFilters);
+        document.getElementById(id).addEventListener('change', applyQRFilters);
+    });
+
+    function renderQRTable(data) {
+        const tbody = document.getElementById('qr-table-body');
+        if (!data.length) {
+            tbody.innerHTML = `<tr><td colspan="10">
+                <div class="empty-state"><span>🔍</span>Koi student nahi mila</div>
+            </td></tr>`;
+            return;
+        }
+        tbody.innerHTML = data.map((s, i) => {
+            const qrBadge   = s.forceLogout
+                ? `<span class="badge badge-force">⚠️ Force Logout</span>`
+                : s.qrStatus === 'Used'
+                    ? `<span class="badge badge-used">✅ Used</span>`
+                    : `<span class="badge badge-unused">⏳ Not Used</span>`;
+
+            const onlineBadge = s.isOnline
+                ? `<span class="badge badge-online">🟢 Online</span>`
+                : `<span class="badge badge-offline">⚫ Offline</span>`;
+
+            const usedAt    = s.qrUsedAt     ? fmtDate(s.qrUsedAt)     : '—';
+            const refreshAt = s.qrRefreshedAt ? fmtDate(s.qrRefreshedAt) : '—';
+            const lastSeen  = s.deviceInfo?.lastSeen ? fmtDate(s.deviceInfo.lastSeen) : '—';
+
+            const devHtml = s.deviceInfo?.ip
+                ? `<div style="font-size:12px;color:#333;">${s.deviceInfo.ip}</div>
+                   <div class="device-info" title="${s.deviceInfo.userAgent||''}">${s.deviceInfo.userAgent || '—'}</div>`
+                : '<span style="color:#bbb;font-size:12px;">No device</span>';
+
+            return `<tr>
+                <td style="color:#888;">${i+1}</td>
+                <td><b>${s.username}</b><br><span style="font-size:11px;color:#aaa;">${s.studentId}</span></td>
+                <td>${s.className}</td>
+                <td>${onlineBadge}</td>
+                <td>${qrBadge}</td>
+                <td style="font-size:12px;">${usedAt}</td>
+                <td>${devHtml}</td>
+                <td style="font-size:12px;">${lastSeen}</td>
+                <td style="font-size:12px;color:${s.qrRefreshedAt ? '#e65100' : '#bbb'}">${refreshAt}</td>
+                <td>
+                    <button class="btn-refresh-qr" onclick="refreshStudentQR('${s.studentId}','${s.username}')">
+                        🔄 Refresh QR
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    window.refreshStudentQR = async (studentId, username) => {
+        if (!confirm(`⚠️ ${username} ka QR refresh karna chahte ho?\n\nYeh student ko auto-logout kar dega aur unhe naya QR dena hoga.`)) return;
+
+        const btn = [...document.querySelectorAll('.btn-refresh-qr')]
+            .find(b => b.getAttribute('onclick')?.includes(studentId));
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; }
+
+        try {
+            const res    = await fetch(`${API_URL}/api/auth/admin/refresh-qr/${studentId}`, {
+                method:  'POST',
+                headers: { 'Authorization': `Bearer ${TOKEN()}` }
+            });
+            const result = await res.json();
+
+            if (result.success) {
+                await loadQRLib();
+                const qrURL = makeQRDataURL(result.qrData);
+                document.getElementById('qr-modal-title').innerText = `${username} — Naya QR`;
+                document.getElementById('qr-modal-sub').innerText   = 'Student ko yeh naya QR dena hoga. Purana QR ab kaam nahi karega.';
+                document.getElementById('qr-modal-img').src         = qrURL;
+                document.getElementById('qr-modal-dl').href         = qrURL;
+                document.getElementById('qr-modal-dl').download     = `${username}_new_QR.png`;
+                document.getElementById('qr-modal').classList.add('open');
+                loadQRStats();
+            } else {
+                alert('❌ ' + (result.message || 'Error'));
+            }
+        } catch(e) { alert('Server error'); }
+
+        if (btn) { btn.disabled = false; btn.innerHTML = '🔄 Refresh QR'; }
+    };
+
+    window.closeQRModal = () => {
+        document.getElementById('qr-modal').classList.remove('open');
+    };
+
+    function fmtDate(d) {
+        if (!d) return '—';
+        const dt   = new Date(d);
+        const diff = Math.floor((Date.now() - dt) / 60000);
+        if (diff < 1)    return 'Just now';
+        if (diff < 60)   return `${diff}m ago`;
+        if (diff < 1440) return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return dt.toLocaleDateString();
+    }
+</script>
+</body>
+</html>

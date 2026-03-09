@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Connect</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #075e54 0%, #128c7e 50%, #25D366 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%; max-width: 420px;
+        }
+
+        .logo { font-size: 60px; margin-bottom: 12px; }
+
+        h1 {
+            color: white; font-size: 28px; font-weight: 700;
+            letter-spacing: 0.5px; margin-bottom: 6px;
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.75); font-size: 14px; margin-bottom: 40px;
+        }
+
+        .cards {
+            display: flex; flex-direction: column; gap: 16px;
+        }
+
+        .card {
+            background: white; border-radius: 16px;
+            padding: 28px 24px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.18s, box-shadow 0.18s;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 20px;
+            text-align: left;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+        }
+        .card:active { transform: translateY(0); }
+
+        .card-icon {
+            font-size: 44px;
+            width: 70px; height: 70px;
+            background: #f0faf4;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-admin .card-icon { background: #e8f0fe; }
+
+        .card-text h2 {
+            font-size: 20px; color: #075e54; margin-bottom: 4px;
+        }
+        .card-admin .card-text h2 { color: #1a56db; }
+
+        .card-text p {
+            font-size: 13px; color: #888; line-height: 1.4;
+        }
+
+        .arrow {
+            margin-left: auto; font-size: 20px;
+            color: #ccc; flex-shrink: 0;
+        }
+
+        .footer {
+            margin-top: 32px;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">🏫</div>
+    <h1>School Connect</h1>
+    <p class="tagline">Apna role select karo aage badhne ke liye</p>
+
+    <div class="cards">
+
+        <!-- Student -->
+        <a class="card card-student" href="student.html">
+            <div class="card-icon">👨‍🎓</div>
+            <div class="card-text">
+                <h2>Student</h2>
+                <p>QR Code se login karo aur classmates se chat karo</p>
+            </div>
+            <span class="arrow">›</span>
+        </a>
+
+        <!-- Admin -->
+        <a class="card card-admin" href="admin.html">
+            <div class="card-icon">🛡️</div>
+            <div class="card-text">
+                <h2>Admin</h2>
+                <p>Students register karo, chats monitor karo, analytics dekho</p>
+            </div>
+            <span class="arrow">›</span>
+        </a>
+
+    </div>
+
+    <p class="footer">© 2025 School Connect</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Node modules
+node_modules/
+
+# Firebase secret key
+firebase-service-account.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Build folders
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+# Coverage
+coverage/
+
+# dotenv backup
+.env.backup
